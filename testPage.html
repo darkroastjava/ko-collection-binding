@@ -1,3 +1,9 @@
+<html>
+    <head>
+        <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
+        <script src="ko.collectionBinding.js"></script>
+    </head>
+</html>
 <h1>Building a data-table simply by binding a table to some view-model properties</h1>
 <table data-bind="with: dataGrid">
     <thead>
@@ -35,7 +41,7 @@
     <!-- /ko -->
 </div>
 
-<style>
+<style type="text/css">
     body {
         font-family: sans-serif;
     }
@@ -83,3 +89,17 @@
         content:'>';
     }
 </style>
+
+<script type="text/javascript">
+    var dataGrid = new ko.collectionBinding.BindingSource(
+        [
+            { name: 'Daniel', color: 'red' },
+            { name: 'Bernd', color: 'blue' },
+            { name: 'Juergen', color: 'green' }
+        ]
+    );
+    
+    ko.applyBindings({
+        dataGrid: dataGrid
+    });
+</script>
