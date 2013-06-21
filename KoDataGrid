@@ -2,28 +2,40 @@ var KoDataGrid = (function(ko) {
     var KoDataGrid = function(data) {
         this.rows = ko.observableArray(data);
     };
-
-    KoDataGrid.prototype.sorter = function (property) {
+    
+    var Sorter = function(property, dataGrid) {
         var self = this,
-            state = ko.observable(false);
-            sorter = function () {
+            state = ko.observable(false),
+            sort = function () {
                 if (state() === 'asc') {
                     state('desc');
-                    self.rows.sort(function (left, right) {
+                    dataGrid.rows.sort(function (left, right) {
                         return left[property] == right[property] ? 0 : left[property] > right[property] ? -1 : 1;
                     });
                 } else {
                     state('asc');
-                    self.rows.sort(function (left, right) {
+                    dataGrid.rows.sort(function (left, right) {
                         return left[property] == right[property] ? 0 : left[property] < right[property] ? -1 : 1;
                     });
                 }
             };
 
-        sorter.state = state;
-        sorter.isAsc = ko.computed(function(){ return sorter.state() == "asc"; });
-        sorter.isDesc = ko.computed(function(){ return sorter.state() == "desc"; });
+        self.state = state;
+        self.isAsc = ko.computed(function(){ return state() == "asc"; });
+        self.isDesc = ko.computed(function(){ return state() == "desc"; });
+        self.isNotSorted = ko.computed(function(){ return !state(); });
+        self.sort = sort;
+    };
+    
+    var sorters = {};
 
+    KoDataGrid.prototype.sorter = function (property) {
+        var sorter = sorters[property];
+        
+        if (!sorter) {
+            sorter = sorters[property] = new Sorter(property, this);
+        }
+        
         return sorter;
     };
     
@@ -41,7 +53,7 @@ ko.bindingHandlers.sortableBy = {
 
         ko.bindingHandlers.click.init(
             element,
-            function() { return sorter; },
+            function() { return sorter.sort; },
             allBindingsAccessor,
             viewModel,
             bindingContext);
@@ -51,7 +63,8 @@ ko.bindingHandlers.sortableBy = {
             { 
                 css: {
                     sorted_asc: sorter.isAsc,
-                    sorted_desc: sorter.isDesc
+                    sorted_desc: sorter.isDesc,
+                    not_sorted: sorter.isNotSorted
                 }
             },
             bindingContext.$data);
