@@ -1,0 +1,67 @@
+var KoDataGrid = (function(ko) {
+    var KoDataGrid = function(data) {
+        this.rows = ko.observableArray(data);
+    };
+
+    KoDataGrid.prototype.sorter = function (property) {
+        var self = this,
+            state = ko.observable(false);
+            sorter = function () {
+                if (state() === 'asc') {
+                    state('desc');
+                    self.rows.sort(function (left, right) {
+                        return left[property] == right[property] ? 0 : left[property] > right[property] ? -1 : 1;
+                    });
+                } else {
+                    state('asc');
+                    self.rows.sort(function (left, right) {
+                        return left[property] == right[property] ? 0 : left[property] < right[property] ? -1 : 1;
+                    });
+                }
+            };
+
+        sorter.state = state;
+        sorter.isAsc = ko.computed(function(){ return sorter.state() == "asc"; });
+        sorter.isDesc = ko.computed(function(){ return sorter.state() == "desc"; });
+
+        return sorter;
+    };
+    
+    return KoDataGrid;
+}(ko));
+
+ko.bindingHandlers.sortableBy = {
+    init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+        // This will be called when the binding is first applied to an element
+        // Set up any initial state, event handlers, etc. here
+        
+        // First get the latest data that we're bound to
+        var sortProperty = ko.utils.unwrapObservable(valueAccessor()),
+            sorter = bindingContext.$data.sorter(sortProperty);
+
+        ko.bindingHandlers.click.init(
+            element,
+            function() { return sorter; },
+            allBindingsAccessor,
+            viewModel,
+            bindingContext);
+        
+        ko.applyBindingsToNode(
+            element,
+            { 
+                css: {
+                    sorted_asc: sorter.isAsc,
+                    sorted_desc: sorter.isDesc
+                }
+            },
+            bindingContext.$data);
+    }
+};
+
+var dataGrid = new KoDataGrid([
+    { name: 'Daniel' },
+    { name: 'Bernd' },
+    { name: 'Juergen' }
+]);
+
+ko.applyBindings({ dataGrid: dataGrid });
