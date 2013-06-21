@@ -3,103 +3,105 @@
         <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
         <script src="ko.collectionBinding.js"></script>
     </head>
+    <body>
+        <h1>Building a data-table simply by binding a table to some view-model properties</h1>
+        <table data-bind="with: dataGrid">
+            <thead>
+                <tr>
+                    <th data-bind="sortableBy: 'name'">Name<span></span>
+                    </th>
+                    <th data-bind="sortableBy: 'color'">Color<span></span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: rows">
+                <tr>
+                    <td data-bind="text: name" />
+                    <td data-bind="text: color" />
+                </tr>
+            </tbody>
+        </table>
+        
+        <h1>Instead of a table, you could just as well use a bullet list:</h1>
+        <ul data-bind="foreach: dataGrid.rows">
+            <li>
+                <span data-bind="text: name"></span>
+                likes
+                <span data-bind="text: color, style: { color: color }"></span>
+            </li>
+        </ul>
+        
+        <h1>Or how about tiles?</h1>
+        <div data-bind="with: dataGrid">
+            <div class="tile" data-bind="sortableBy: 'name'"> <span></span>
+        
+            </div>
+            <!-- ko foreach: rows -->
+            <div class="tile" data-bind="text: name, style: { backgroundColor: color }"></div>
+            <!-- /ko -->
+        </div>
+        
+        <style type="text/css">
+            body {
+                font-family: sans-serif;
+            }
+            table {
+                border-collapse: collapse;
+            }
+            th, td {
+                border: solid thin;
+                padding: 0em 1em;
+            }
+            th {
+                background-color: silver;
+            }
+            .sortable {
+                cursor: pointer;
+            }
+            th.not_sorted span:before {
+                content:'↑↓';
+            }
+            th.sorted_asc span:before {
+                content:'↑';
+            }
+            th.sorted_desc span:before {
+                content:'↓';
+            }
+            .tile {
+                min-width: 4em;
+                min-height: 1.25em;
+                margin: 0.25em;
+                float: left;
+                text-align: center;
+                font-size: 2em;
+                vertical-align: middle;
+                background-color: darkblue;
+                color: white;
+                display: inline-block;
+            }
+            .tile.not_sorted span:before {
+                content:'<>';
+            }
+            .tile.sorted_asc span:before {
+                content:'<';
+            }
+            .tile.sorted_desc span:before {
+                content:'>';
+            }
+        </style>
+        
+        <script type="text/javascript">
+            var dataGrid = new ko.collectionBinding.BindingSource(
+                [
+                    { name: 'Daniel', color: 'red' },
+                    { name: 'Bernd', color: 'blue' },
+                    { name: 'Juergen', color: 'green' }
+                ]
+            );
+            
+            ko.applyBindings({
+                dataGrid: dataGrid
+            });
+        </script>        
+    </body>
 </html>
-<h1>Building a data-table simply by binding a table to some view-model properties</h1>
-<table data-bind="with: dataGrid">
-    <thead>
-        <tr>
-            <th data-bind="sortableBy: 'name'">Name<span></span>
-            </th>
-            <th data-bind="sortableBy: 'color'">Color<span></span>
-            </th>
-        </tr>
-    </thead>
-    <tbody data-bind="foreach: rows">
-        <tr>
-            <td data-bind="text: name" />
-            <td data-bind="text: color" />
-        </tr>
-    </tbody>
-</table>
-
-<h1>Instead of a table, you could just as well use a bullet list:</h1>
-<ul data-bind="foreach: dataGrid.rows">
-    <li>
-        <span data-bind="text: name"></span>
-        likes
-        <span data-bind="text: color, style: { color: color }"></span>
-    </li>
-</ul>
-
-<h1>Or how about tiles?</h1>
-<div data-bind="with: dataGrid">
-    <div class="tile" data-bind="sortableBy: 'name'"> <span></span>
-
-    </div>
-    <!-- ko foreach: rows -->
-    <div class="tile" data-bind="text: name, style: { backgroundColor: color }"></div>
-    <!-- /ko -->
-</div>
-
-<style type="text/css">
-    body {
-        font-family: sans-serif;
-    }
-    table {
-        border-collapse: collapse;
-    }
-    th, td {
-        border: solid thin;
-        padding: 0em 1em;
-    }
-    th {
-        background-color: silver;
-    }
-    .sortable {
-        cursor: pointer;
-    }
-    th.not_sorted span:before {
-        content:'↑↓';
-    }
-    th.sorted_asc span:before {
-        content:'↑';
-    }
-    th.sorted_desc span:before {
-        content:'↓';
-    }
-    .tile {
-        min-width: 4em;
-        min-height: 1.25em;
-        margin: 0.25em;
-        float: left;
-        text-align: center;
-        font-size: 2em;
-        vertical-align: middle;
-        background-color: darkblue;
-        color: white;
-        display: inline-block;
-    }
-    .tile.not_sorted span:before {
-        content:'<>';
-    }
-    .tile.sorted_asc span:before {
-        content:'<';
-    }
-    .tile.sorted_desc span:before {
-        content:'>';
-    }
-</style>
-
-<script type="text/javascript">
-    var dataGrid = new ko.collectionBinding.BindingSource(
-        [
-            { name: 'Daniel', color: 'red' },
-            { name: 'Bernd', color: 'blue' },
-            { name: 'Juergen', color: 'green' }
-        ]
-    );
-    
-    ko.applyBindings({
-        dataGrid: dataGrid
-    });
-</script>
