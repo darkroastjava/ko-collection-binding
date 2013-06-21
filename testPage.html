@@ -1,7 +1,7 @@
 <table data-bind="with: dataGrid">
     <thead>
         <tr>
-            <th data-bind="sortableBy: 'name'">Name</th>
+            <th data-bind="sortableBy: 'name'">Name<span></span></th>
         </tr>
     </thead>
     <tbody data-bind="foreach: rows">
@@ -11,11 +11,46 @@
     </tbody>
 </table>
 
+<div data-bind="with: dataGrid">
+    <div class="tile" data-bind="sortableBy: 'name'">
+        <span></span>
+    </div>
+    <!-- ko foreach: rows -->
+    <div class="tile" data-bind="text: name" ></div>
+    <!-- /ko -->
+</div>
+
 <style>
-    .sorted_asc {
-        background-color: red;
+    th.not_sorted span:before {
+        content: '↑↓';
     }
-    .sorted_desc {
-        background-color: blue;
+    th.sorted_asc span:before {
+        content: '↑';
+    }
+    th.sorted_desc span:before {
+        content: '↓';
+    }
+    
+    .tile {
+        min-width: 4em;
+        min-height: 1.25em;
+        margin: 0.25em;
+        float: left;
+        text-align: center;
+        font: 2em arial;
+        vertical-align: middle;
+        background-color: darkblue;
+        color: white;
+        display: inline-block;
+    }
+    
+    .tile.not_sorted span:before {
+        content: '<>';
+    }
+    .tile.sorted_asc span:before {
+        content: '<';
+    }
+    .tile.sorted_desc span:before {
+        content: '>';
     }
 </style>
