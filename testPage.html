@@ -5,7 +5,7 @@
     </head>
     <body>
         <h1>Building a data-table simply by binding a table to some view-model properties</h1>
-        <table data-bind="with: dataGrid">
+        <table data-bind="with: grid">
             <thead>
                 <tr>
                     <th data-bind="sortableBy: 'name'">Name<span></span>
@@ -14,7 +14,7 @@
                     </th>
                 </tr>
             </thead>
-            <tbody data-bind="foreach: rows">
+            <tbody data-bind="foreach: items">
                 <tr>
                     <td data-bind="text: name" />
                     <td data-bind="text: color" />
@@ -23,7 +23,7 @@
         </table>
         
         <h1>Instead of a table, you could just as well use a bullet list:</h1>
-        <ul data-bind="foreach: dataGrid.rows">
+        <ul data-bind="foreach: bulletList.items">
             <li>
                 <span data-bind="text: name"></span>
                 likes
@@ -32,15 +32,26 @@
         </ul>
         
         <h1>Or how about tiles?</h1>
-        <div data-bind="with: dataGrid">
-            <div class="tile" data-bind="sortableBy: 'name'"> <span></span>
-        
+        <div class="tiles" data-bind="with: tiles">
+            <div class="tile" data-bind="sortableBy: 'name'">
+                <div class="tile-content">
+                    <span class="sortIcon"></span>
+                </div>
             </div>
-            <!-- ko foreach: rows -->
-            <div class="tile" data-bind="text: name, style: { backgroundColor: color }"></div>
+            <!-- ko foreach: items -->
+            <div class="tile" data-bind="style: { backgroundColor: color }">
+                <span class="tile-content" data-bind="text: name"></span>
+            </div>
             <!-- /ko -->
+            <div class="clear"></div>
         </div>
         
+        <h1>Let's add some data</h1>
+        <input type="text" data-bind="value: newItem.name" />
+        likes
+        <input type="text" data-bind="value: newItem.color" />
+        <button data-bind="click: newItem.add">add</button>
+
         <style type="text/css">
             body {
                 font-family: sans-serif;
@@ -67,40 +78,59 @@
             th.sorted_desc span:before {
                 content:'↓';
             }
+            .clear {
+                clear: both;
+            }
             .tile {
-                min-width: 4em;
-                min-height: 1.25em;
+                width: 4em;
+                height: 4em;
                 margin: 0.25em;
                 float: left;
                 text-align: center;
                 font-size: 2em;
-                vertical-align: middle;
-                background-color: darkblue;
+                background-color: silver;
                 color: white;
+            }
+            .tile-content {
+                margin-top: 1.35em;
                 display: inline-block;
             }
-            .tile.not_sorted span:before {
+            .tile.not_sorted .sortIcon:before {
                 content:'<>';
             }
-            .tile.sorted_asc span:before {
+            .tile.sorted_asc .sortIcon:before {
                 content:'<';
             }
-            .tile.sorted_desc span:before {
+            .tile.sorted_desc .sortIcon:before {
                 content:'>';
             }
         </style>
         
         <script type="text/javascript">
-            var dataGrid = new ko.collectionBinding.BindingSource(
+            var dataSource = new ko.collectionBinding.DataSource(
                 [
                     { name: 'Daniel', color: 'red' },
                     { name: 'Bernd', color: 'blue' },
                     { name: 'Juergen', color: 'green' }
                 ]
-            );
+            ),
+                gridBindingSource = new ko.collectionBinding.BindingSource(dataSource),
+                bulletListBindingSource = new ko.collectionBinding.BindingSource(dataSource),
+                tilesBindingSource = new ko.collectionBinding.BindingSource(dataSource),
+                newItem = {
+                    name: ko.observable(),
+                    color: ko.observable()
+                };
+            
+            newItem.add = function() {
+                dataSource.addItem({ name: newItem.name(), color: newItem.color() });
+            };
             
             ko.applyBindings({
-                dataGrid: dataGrid
+                grid: gridBindingSource,
+                bulletList: bulletListBindingSource,
+                tiles: tilesBindingSource,
+                newItem: newItem
             });
         </script>        
     </body>
