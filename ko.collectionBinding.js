@@ -2,20 +2,88 @@ if (!ko) {
     return 'knockout must be included before this file';
 }
 
-ko.collectionBinding = (function (ko) {
+ko.collections = ko.collections || {};
+
+ko.collections.DataSource = (function (ko) {
     var DataSource = function (data) {
         this.items = data;
         this.subscribersForAdd = [];
-    },
-        BindingSource = function (dataSource) {
-            var self = this;
-            self.dataSource = dataSource;
-            self.items = ko.observableArray(dataSource.getItems());
-            dataSource.subscribeForAdd(function(newItem){
+        this.subscribersForRemove = [];
+    };
+
+    DataSource.prototype.notifyAdd = function (newItem) {
+        var i, n, subscribers = this.subscribersForAdd;
+        
+        for (i = 0, n = subscribers.length; i < n; i++) {
+            subscribers[i](newItem);
+        }
+    };
+    
+    DataSource.prototype.notifyRemove = function (itemRemoved) {
+        var i, n, subscribers = this.subscribersForRemove;
+        
+        for (i = 0, n = subscribers.length; i < n; i++) {
+            subscribers[i](itemRemoved);
+        }
+    };
+    
+    DataSource.prototype.addItem = function (newItem) {
+        this.items.push(newItem);
+        this.notifyAdd(newItem);
+    };
+    
+    DataSource.prototype.deleteItem = function (itemToDelete) {
+        var index = this.items.indexOf(itemToDelete);
+        this.items.splice(index, 1);
+        this.notifyRemove(itemToDelete);
+    };
+    
+    DataSource.prototype.subscribeForAdd = function (callback) {
+        this.subscribersForAdd.push(callback);
+    };
+    
+    DataSource.prototype.subscribeForRemove = function (callback) {
+        this.subscribersForRemove.push(callback);
+    };
+    
+    DataSource.prototype.getItems = function () {
+        return this.items.slice(0); // clone
+    };
+    
+    return DataSource;
+}(ko));
+
+ko.collections.BindingItem = (function (ko) {
+    var BindingItem = function(item, bindingSource) {
+        var self = this;
+        
+        for (var prop in item) {
+            if (item.hasOwnProperty(prop)) {
+                self[prop] = item[prop];
+            }
+        }
+        
+        self.bindingSource = bindingSource;
+        self.deleteItem = function() {
+            bindingSource.deleteItem(self);
+        };
+        self.originalItem = item;
+    };
+    
+    return BindingItem;
+}(ko));
+
+ko.collections.BindingSource = (function (ko) {
+    var BindingSource = function (dataSource) {
+        var self = this,
+            addItem = function(newItem) {
                 var currentlySortedBy = self.currentlySortedBy(),
                     sorter;
                 
-                self.items.push(newItem);
+                self.items.push(
+                    new ko.collections.BindingItem(newItem, self)
+                );
+                
                 if (currentlySortedBy) {
                     sorter = self.sorters[currentlySortedBy];
                     
@@ -27,10 +95,37 @@ ko.collectionBinding = (function (ko) {
                     
                     sorter.sort();
                 }
-            });
-            self.currentlySortedBy = ko.observable(null);
-            self.sorters = {};
-        },
+            },
+            dataSourceItems = dataSource.getItems(),
+            i,
+            n;
+        
+        self.dataSource = dataSource;
+        self.items = ko.observableArray();
+        self.currentlySortedBy = ko.observable(null);
+        self.sorters = {};
+        
+        for (i = 0, n = dataSourceItems.length; i < n; i++) {
+            addItem(dataSourceItems[i]);
+        }
+        
+        dataSource.subscribeForAdd(addItem);
+        dataSource.subscribeForRemove(function (itemRemoved) {
+            var i, n, items = self.items, index = -1;
+            
+            for (i = 0, n = items().length; i < n; i++) {
+                console.log(items()[i].originalItem.name);
+                if (items()[i].originalItem == itemRemoved) {
+                    index = i;
+                    break;
+                }
+            }
+            
+            if (index > -1) {
+                items.splice(index, 1);
+            }
+        });
+    },
         comparerForProperty = function (property) {
             return function (left, right) {
                 return left[property] == right[property] ? 0 : left[property] < right[property] ? -1 : 1;
@@ -45,7 +140,7 @@ ko.collectionBinding = (function (ko) {
                         sorters[bindingSource.currentlySortedBy()].state(null);
                     }
                     bindingSource.currentlySortedBy(property);
-
+                    
                     if (state() === 'asc') {
                         state('desc');
                         bindingSource.items.sort(function (left, right) {
@@ -56,7 +151,7 @@ ko.collectionBinding = (function (ko) {
                         bindingSource.items.sort(compare);
                     }
                 };
-    
+            
             self.state = state;
             self.isAsc = ko.computed(function () {
                 return state() == "asc";
@@ -69,28 +164,7 @@ ko.collectionBinding = (function (ko) {
             });
             self.sort = sort;
         };
-
-    DataSource.prototype.notifyAdd = function (newItem) {
-        var i, n, subscribers = this.subscribersForAdd;
-        
-        for (i = 0, n = subscribers.length; i < n; i++) {
-            subscribers[i](newItem);
-        }
-    };
-    
-    DataSource.prototype.addItem = function (newItem) {
-        this.items.push(newItem);
-        this.notifyAdd(newItem);
-    };
-    
-    DataSource.prototype.subscribeForAdd = function (callback) {
-        this.subscribersForAdd.push(callback);
-    };
-    
-    DataSource.prototype.getItems = function () {
-        return this.items.slice(0); // clone
-    };
-    
+   
     BindingSource.prototype.comparerForProperty = comparerForProperty;
 
     BindingSource.prototype.sorter = function (property) {
@@ -102,11 +176,12 @@ ko.collectionBinding = (function (ko) {
 
         return sorter;
     };
-
-    return {
-        DataSource: DataSource,
-        BindingSource: BindingSource
+    
+    BindingSource.prototype.deleteItem = function(itemToDelete) {
+        this.dataSource.deleteItem(itemToDelete.originalItem);
     };
+
+    return BindingSource;
 }(ko));
 
 ko.bindingHandlers.sortableBy = {
