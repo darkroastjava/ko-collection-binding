@@ -2,6 +2,7 @@
     <head>
         <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
         <script src="ko.collectionBinding.js"></script>
+        <link rel="stylesheet" type="text/css" href="testPage.css" />
     </head>
     <body>
         <h1>Building a data-table simply by binding a table to some view-model properties</h1>
@@ -61,60 +62,6 @@
             <!-- /ko -->
             <div class="clear"></div>
         </div>
-
-        <style type="text/css">
-            body {
-                font-family: sans-serif;
-            }
-            table {
-                border-collapse: collapse;
-            }
-            th, td {
-                border: solid thin;
-                padding: 0em 1em;
-            }
-            th {
-                background-color: silver;
-            }
-            .sortable {
-                cursor: pointer;
-            }
-            th.not_sorted span:before {
-                content:'↑↓';
-            }
-            th.sorted_asc span:before {
-                content:'↑';
-            }
-            th.sorted_desc span:before {
-                content:'↓';
-            }
-            .clear {
-                clear: both;
-            }
-            .tile {
-                width: 4em;
-                height: 4em;
-                margin: 0.25em;
-                float: left;
-                text-align: center;
-                font-size: 2em;
-                background-color: silver;
-                color: white;
-            }
-            .tile-content {
-                margin-top: 1.35em;
-                display: inline-block;
-            }
-            .tile.not_sorted .sortIcon:before {
-                content:'<>';
-            }
-            .tile.sorted_asc .sortIcon:before {
-                content:'<';
-            }
-            .tile.sorted_desc .sortIcon:before {
-                content:'>';
-            }
-        </style>
         
         <script type="text/javascript">
             var dataSource = new ko.collections.DataSource(
