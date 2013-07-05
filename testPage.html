@@ -5,23 +5,39 @@
     </head>
     <body>
         <h1>Building a data-table simply by binding a table to some view-model properties</h1>
+        <p>In this example, name can be toggled; color is only displayed if there is any user preferring pink.<p/>
+        
+        <div><input type="checkbox" data-bind="checked: grid.nameVisible" /> Name</div>
+        
+        <br />
+        
         <table data-bind="with: grid">
             <thead>
                 <tr>
-                    <th data-bind="sortableBy: 'name'">Name<span></span>
+                    <th data-bind="sortableBy: 'name', visible: nameVisible">Name<span></span>
                     </th>
-                    <th data-bind="sortableBy: 'color'">Color<span></span>
+                    <th data-bind="sortableBy: 'color', visible: colorVisible">Color<span></span>
                     </th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody data-bind="foreach: items">
                 <tr>
-                    <td data-bind="text: name" />
-                    <td data-bind="text: color" />
+                    <td data-bind="text: name, visible: $parent.nameVisible" />
+                    <td data-bind="text: color, visible: $parent.colorVisible" />
+                    <td>
+                        <button data-bind="click: deleteItem">Delete</button>
+                    </td>
                 </tr>
             </tbody>
         </table>
-        
+        <br />
+        <div>
+            <input type="text" data-bind="value: newItem.name" /> likes
+            <input type="text" data-bind="value: newItem.color" />
+            <button data-bind="click: newItem.add">add</button>
+        </div>
+            
         <h1>Instead of a table, you could just as well use a bullet list:</h1>
         <ul data-bind="foreach: bulletList.items">
             <li>
@@ -45,12 +61,6 @@
             <!-- /ko -->
             <div class="clear"></div>
         </div>
-        
-        <h1>Let's add some data</h1>
-        <input type="text" data-bind="value: newItem.name" />
-        likes
-        <input type="text" data-bind="value: newItem.color" />
-        <button data-bind="click: newItem.add">add</button>
 
         <style type="text/css">
             body {
@@ -107,20 +117,36 @@
         </style>
         
         <script type="text/javascript">
-            var dataSource = new ko.collectionBinding.DataSource(
+            var dataSource = new ko.collections.DataSource(
                 [
                     { name: 'Daniel', color: 'red' },
                     { name: 'Bernd', color: 'blue' },
                     { name: 'Juergen', color: 'green' }
                 ]
             ),
-                gridBindingSource = new ko.collectionBinding.BindingSource(dataSource),
-                bulletListBindingSource = new ko.collectionBinding.BindingSource(dataSource),
-                tilesBindingSource = new ko.collectionBinding.BindingSource(dataSource),
+                gridBindingSource = new ko.collections.BindingSource(dataSource),
+                bulletListBindingSource = new ko.collections.BindingSource(dataSource),
+                tilesBindingSource = new ko.collections.BindingSource(dataSource),
                 newItem = {
                     name: ko.observable(),
                     color: ko.observable()
                 };
+            
+            gridBindingSource.nameVisible = ko.observable(true);
+            
+            gridBindingSource.colorVisible = ko.computed(function () {
+                var items = gridBindingSource.items(),
+                    i,
+                    n;
+                
+                for (i = 0, n = items.length; i < n; i++) {
+                    if (items[i].color === 'pink') {
+                        return true;
+                    }
+                }
+                
+                return false;
+            });
             
             newItem.add = function() {
                 dataSource.addItem({ name: newItem.name(), color: newItem.color() });
@@ -132,6 +158,6 @@
                 tiles: tilesBindingSource,
                 newItem: newItem
             });
-        </script>        
+        </script>
     </body>
 </html>
